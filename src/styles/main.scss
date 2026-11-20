@@ -1,0 +1,27 @@
+@use 'variables' as *;
+
+// Лише справді глобальні речі: reset, body і базова типографіка.
+// Стилі компонентів лежать поруч із ними (Component.scss) і підключаються
+// безпосередньо в .tsx файлі компонента.
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: $color-bg;
+  color: $color-text;
+  font-family:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}

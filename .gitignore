@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+.DS_Store
+
+# Локальні змінні середовища не потрапляють у Git; шаблон — .env.example
+.env
+.env.*
+!.env.example
+
+.vscode/*
+!.vscode/extensions.json
+.idea

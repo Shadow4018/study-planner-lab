@@ -1,0 +1,41 @@
+@use '../styles/variables' as *;
+
+.task-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: 999px;
+    color: $color-text;
+    cursor: pointer;
+    transition: background $transition, color $transition,
+      border-color $transition;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+
+    &--active {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+
+  &__count {
+    min-width: 22px;
+    padding: 0 6px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+}

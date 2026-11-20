@@ -1,0 +1,172 @@
+@use '../styles/variables' as *;
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: $color-surface;
+  border-left: 4px solid $color-primary;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  transition: opacity $transition, background $transition;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  &__description {
+    margin: 4px 0 0;
+    color: $color-muted;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  &__badge {
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    &--category {
+      background: $color-info-bg;
+      color: $color-primary-dark;
+    }
+
+    &--priority-low {
+      background: $color-success-bg;
+      color: $color-success;
+    }
+
+    &--priority-medium {
+      background: $color-warning-bg;
+      color: $color-warning;
+    }
+
+    &--priority-high {
+      background: $color-danger-bg;
+      color: $color-danger;
+    }
+  }
+
+  &__status {
+    font-size: 0.8rem;
+    color: $color-muted;
+
+    &--done {
+      color: $color-success;
+      font-weight: 600;
+    }
+  }
+
+  &__actions,
+  &__confirm {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__confirm-text {
+    color: $color-danger;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  &__edit {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__edit-input {
+    flex: 1;
+    min-width: 160px;
+    padding: 6px 10px;
+    border: 1px solid $color-primary;
+    border-radius: 8px;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+  }
+
+  &__button {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background $transition, color $transition,
+      border-color $transition;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &--primary {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: #fff;
+    }
+
+    &--toggle:hover:not(:disabled) {
+      border-color: $color-success;
+      color: $color-success;
+    }
+
+    &--edit:hover:not(:disabled) {
+      border-color: $color-primary;
+      color: $color-primary;
+    }
+
+    &--delete:hover:not(:disabled) {
+      background: $color-danger-bg;
+      border-color: $color-danger;
+      color: $color-danger;
+    }
+  }
+
+  // Виконане завдання: приглушене, закреслена назва, зелений акцент.
+  &--completed {
+    background: #f8faf8;
+    border-left-color: $color-success;
+
+    .task-item__title {
+      color: $color-muted;
+      text-decoration: line-through;
+    }
+  }
+
+  // Завдання, деталі якого відкриті.
+  &--selected {
+    box-shadow:
+      0 0 0 2px $color-primary,
+      $shadow;
+  }
+
+  // Для цього завдання виконується запит.
+  &--busy {
+    opacity: 0.7;
+  }
+}
