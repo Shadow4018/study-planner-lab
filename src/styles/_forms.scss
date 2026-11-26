@@ -1,0 +1,38 @@
+@use 'variables' as *;
+
+// Спільні стилі текстових полів і кнопок для форм (Login, діалог завдання).
+@mixin form-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  color: $color-text;
+  transition: border-color $transition, box-shadow $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+}
+
+@mixin primary-button {
+  padding: 9px 22px;
+  background: $color-primary;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background $transition;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-dark;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}

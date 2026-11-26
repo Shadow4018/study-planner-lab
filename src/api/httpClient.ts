@@ -6,6 +6,7 @@ interface RequestOptions {
   query?: Query
   body?: unknown
   signal?: AbortSignal
+  token?: string | null
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -44,16 +45,20 @@ async function readErrorMessage(response: Response): Promise<string> {
 async function request<T>(
   method: Method,
   path: string,
-  { query, body, signal }: RequestOptions = {},
+  { query, body, signal, token }: RequestOptions = {},
 ): Promise<T> {
   const url = buildUrl(path, query)
+
+  const headers: Record<string, string> = {}
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  if (token) headers.Authorization = `Bearer ${token}`
 
   let response: Response
   try {
     response = await fetch(url, {
       method,
       signal,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     })
   } catch (error) {
@@ -73,6 +78,10 @@ async function request<T>(
   }
 }
 
+/**
+ * Єдина точка, яка знає про fetch, URL та HTTP-статуси.
+ * Компоненти та repository працюють лише з цими методами.
+ */
 export const httpClient = {
   get: <T>(path: string, options?: Omit<RequestOptions, 'body'>) =>
     request<T>('GET', path, options),

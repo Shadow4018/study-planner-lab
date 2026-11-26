@@ -1,0 +1,106 @@
+@use '../styles/variables' as *;
+@use '../styles/forms' as *;
+
+.task-form-dialog {
+  width: min(520px, calc(100vw - 32px));
+  padding: 0;
+  background: $color-surface;
+  border: none;
+  border-radius: $radius;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
+  color: $color-text;
+
+  &::backdrop {
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  &__field {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 12px;
+
+    @media (max-width: 520px) {
+      flex-direction: column;
+    }
+  }
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $color-muted;
+  }
+
+  &__input {
+    @include form-input;
+
+    &--textarea {
+      resize: vertical;
+    }
+
+    &--invalid {
+      border-color: $color-danger;
+    }
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.85rem;
+    color: $color-danger;
+
+    &--form {
+      padding: 8px 12px;
+      background: $color-danger-bg;
+      border-radius: 8px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  &__button {
+    padding: 9px 22px;
+    background: transparent;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background $transition;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &--primary {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: #fff;
+      font-weight: 600;
+
+      &:hover:not(:disabled) {
+        background: $color-primary-dark;
+      }
+    }
+  }
+}

@@ -1,21 +1,56 @@
+import { useState } from 'react'
 import Pagination from '../components/Pagination'
-import TaskDetails from '../components/TaskDetails'
 import TaskFilters from '../components/TaskFilters'
-import TaskForm from '../components/TaskForm'
+import TaskFormDialog from '../components/TaskFormDialog'
 import TaskList from '../components/TaskList'
 import TaskStats from '../components/TaskStats'
+import { useAuthGuard } from '../hooks/useAuthGuard'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useTaskContext } from '../hooks/useTaskContext'
+import type { TaskFormData } from '../schemas/taskSchema'
+import { toTaskInput } from '../utils/taskForm'
+import './TasksPage.scss'
 
-/** Головна сторінка: форма, статистика, фільтри, список, пагінація та деталі. */
 function TasksPage() {
+  const { page, totalPages, createTask } = useTaskContext()
+  const requireAuth = useAuthGuard()
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+
+  useDocumentTitle(`Study Planner — сторінка ${page} з ${totalPages}`)
+
+  const openCreate = () => {
+    if (requireAuth()) setIsCreateOpen(true)
+  }
+
+  const handleCreate = (data: TaskFormData) => createTask(toTaskInput(data))
+
   return (
-    <main className="app__main">
-      <TaskForm />
+    <>
+      <div className="tasks-page__toolbar">
+        <h2 className="tasks-page__title">Завдання</h2>
+        <button
+          className="tasks-page__add"
+          type="button"
+          onClick={openCreate}
+          aria-label="Додати завдання"
+          title="Додати завдання"
+        >
+          +
+        </button>
+      </div>
+
       <TaskStats />
       <TaskFilters />
       <TaskList />
       <Pagination />
-      <TaskDetails />
-    </main>
+
+      <TaskFormDialog
+        open={isCreateOpen}
+        mode="create"
+        onClose={() => setIsCreateOpen(false)}
+        onSubmit={handleCreate}
+      />
+    </>
   )
 }
 

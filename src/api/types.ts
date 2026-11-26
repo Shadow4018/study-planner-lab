@@ -1,6 +1,4 @@
-/**
- * DTO — формат даних, у якому їх віддає DummyJSON.
- */
+
 export interface ApiTodo {
   id: number
   todo: string
@@ -13,4 +11,18 @@ export interface TodosResponse {
   total: number
   skip: number
   limit: number
+}
+
+export interface ApiUser {
+  id: number
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  image: string
+}
+
+export interface ApiLoginResponse extends ApiUser {
+  accessToken: string
+  refreshToken: string
 }
