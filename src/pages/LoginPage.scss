@@ -1,0 +1,66 @@
+@use '../styles/variables' as *;
+@use '../styles/forms' as *;
+
+.login {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  background: $color-surface;
+  border-radius: $radius;
+  box-shadow: $shadow;
+
+  &__title {
+    margin: 0 0 4px;
+    font-size: 1.3rem;
+  }
+
+  &__hint {
+    margin: 0 0 16px;
+    color: $color-muted;
+    font-size: 0.9rem;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $color-muted;
+  }
+
+  &__input {
+    @include form-input;
+
+    &--invalid {
+      border-color: $color-danger;
+    }
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.85rem;
+    color: $color-danger;
+
+    &--form {
+      padding: 8px 12px;
+      background: $color-danger-bg;
+      border-radius: 8px;
+    }
+  }
+
+  &__submit {
+    @include primary-button;
+    align-self: flex-start;
+  }
+}

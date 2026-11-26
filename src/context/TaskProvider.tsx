@@ -1,19 +1,17 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getErrorMessage, normalizeError } from '../api/errors'
-import { FILTER_STORAGE_KEY, PAGE_SIZE } from '../constants'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { ApiError, getErrorMessage, normalizeError } from '../api/errors'
+import { PAGE_SIZE } from '../constants'
+import { useAuth } from '../hooks/useAuth'
 import { useTaskPage } from '../hooks/useTaskPage'
+import { useTaskQuery } from '../hooks/useTaskQuery'
+import { useToast } from '../hooks/useToast'
 import { taskRepository } from '../repositories/taskRepository'
-import type { TaskPage } from '../repositories/taskRepository'
-import type { NewTaskData, Task, TaskFilter } from '../types/task'
-import { isTaskFilter } from '../utils/guards'
+import type { TaskPage, TaskPatch } from '../repositories/taskRepository'
+import type { AuthActor } from '../types/auth'
+import type { NewTaskData, Task } from '../types/task'
 import { TaskContext } from './TaskContext'
-import type { TaskContextValue, ToastData, ToastVariant } from './TaskContext'
-
-interface TaskProviderProps {
-  children: ReactNode
-}
+import type { TaskContextValue } from './TaskContext'
 
 const replaceTask = (task: Task) => (page: TaskPage): TaskPage => ({
   ...page,
@@ -41,18 +39,17 @@ const prependTask = (task: Task) => (page: TaskPage): TaskPage => ({
 
 const EMPTY_TASKS: Task[] = []
 
-export function TaskProvider({ children }: TaskProviderProps) {
-  // ── client/UI state ─────────────────────────────────────────────────────
-  const [page, setPage] = useState(1)
-  const [filter, setFilter] = useLocalStorage<TaskFilter>(
-    FILTER_STORAGE_KEY,
-    'all',
-    isTaskFilter,
-  )
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+export function TaskProvider({ children }: { children: ReactNode }) {
+  const { user, accessToken, logout } = useAuth()
+  const { showToast } = useToast()
+  const { page, setPage } = useTaskQuery()
   const [busyIds, setBusyIds] = useState<number[]>([])
-  const [toast, setToast] = useState<ToastData | null>(null)
-  const toastSeq = useRef(0)
+
+  const actor = useMemo<AuthActor | null>(
+    () =>
+      user && accessToken ? { token: accessToken, username: user.username } : null,
+    [user, accessToken],
+  )
 
   // ── server state: сторінка завдань з API (з можливістю скасування) ──────
   const { status, data, error, retry, mutate } = useTaskPage(page)
@@ -62,21 +59,20 @@ export function TaskProvider({ children }: TaskProviderProps) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const errorMessage = error ? getErrorMessage(error) : null
 
-  // ── toast ───────────────────────────────────────────────────────────────
-  const showToast = useCallback(
-    (message: string, variant: ToastVariant = 'success') => {
-      toastSeq.current += 1
-      setToast({ id: toastSeq.current, message, variant })
+  const handleFailure = useCallback(
+    (cause: unknown) => {
+      const apiError = normalizeError(cause)
+      if (apiError instanceof ApiError && apiError.status === 401) logout()
+      return apiError
     },
-    [],
+    [logout],
   )
-  const dismissToast = useCallback(() => setToast(null), [])
 
   const reportError = useCallback(
     (cause: unknown) => {
-      showToast(getErrorMessage(normalizeError(cause)), 'error')
+      showToast(getErrorMessage(handleFailure(cause)), 'error')
     },
-    [showToast],
+    [handleFailure, showToast],
   )
 
   const setBusy = useCallback((id: number, busy: boolean) => {
@@ -85,28 +81,37 @@ export function TaskProvider({ children }: TaskProviderProps) {
     )
   }, [])
 
-  // ── навігація ───────────────────────────────────────────────────────────
   const goToPage = useCallback(
     (next: number) => setPage(Math.min(Math.max(1, next), totalPages)),
-    [totalPages],
+    [setPage, totalPages],
   )
-  const selectTask = useCallback((id: number) => setSelectedId(id), [])
-  const closeDetails = useCallback(() => setSelectedId(null), [])
 
   // ── операції: HTTP через repository, потім оновлення client state ───────
   const createTask = useCallback(
     async (input: NewTaskData) => {
       try {
-        const task = await taskRepository.create(input)
+        const task = await taskRepository.create(input, actor)
         mutate(prependTask(task))
         showToast('Завдання створено')
-        return true
       } catch (cause) {
-        reportError(cause)
-        return false
+        throw handleFailure(cause)
       }
     },
-    [mutate, showToast, reportError],
+    [actor, mutate, showToast, handleFailure],
+  )
+
+  const updateTask = useCallback(
+    async (id: number, patch: TaskPatch) => {
+      try {
+        const updated = await taskRepository.update(id, patch, actor)
+        mutate(replaceTask(updated))
+        showToast('Завдання оновлено')
+        return updated
+      } catch (cause) {
+        throw handleFailure(cause)
+      }
+    },
+    [actor, mutate, showToast, handleFailure],
   )
 
   // Optimistic update: інтерфейс змінюється одразу, а при помилці — відкочується.
@@ -118,9 +123,11 @@ export function TaskProvider({ children }: TaskProviderProps) {
       setBusy(id, true)
       mutate(patchTask(id, { completed: !current.completed }))
       try {
-        const updated = await taskRepository.update(id, {
-          completed: !current.completed,
-        })
+        const updated = await taskRepository.update(
+          id,
+          { completed: !current.completed },
+          actor,
+        )
         mutate(replaceTask(updated))
         return true
       } catch (cause) {
@@ -131,27 +138,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
         setBusy(id, false)
       }
     },
-    [tasks, busyIds, mutate, setBusy, reportError],
-  )
-
-  const renameTask = useCallback(
-    async (id: number, title: string) => {
-      if (busyIds.includes(id)) return false
-
-      setBusy(id, true)
-      try {
-        const updated = await taskRepository.update(id, { title })
-        mutate(patchTask(id, { title: updated.title }))
-        showToast('Назву змінено')
-        return true
-      } catch (cause) {
-        reportError(cause)
-        return false
-      } finally {
-        setBusy(id, false)
-      }
-    },
-    [busyIds, mutate, setBusy, showToast, reportError],
+    [tasks, busyIds, actor, mutate, setBusy, reportError],
   )
 
   const deleteTask = useCallback(
@@ -160,10 +147,10 @@ export function TaskProvider({ children }: TaskProviderProps) {
 
       setBusy(id, true)
       try {
-        await taskRepository.delete(id)
+        await taskRepository.delete(id, actor)
+        const wasOnPage = tasks.some((t) => t.id === id)
         mutate(removeTask(id))
-        setSelectedId((current) => (current === id ? null : current))
-        if (tasks.length === 1 && page > 1) setPage(page - 1)
+        if (wasOnPage && tasks.length === 1 && page > 1) setPage(page - 1)
         showToast('Завдання видалено')
         return true
       } catch (cause) {
@@ -173,7 +160,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
         setBusy(id, false)
       }
     },
-    [busyIds, tasks.length, page, mutate, setBusy, showToast, reportError],
+    [busyIds, actor, tasks, page, mutate, setBusy, setPage, showToast, reportError],
   )
 
   const value = useMemo<TaskContextValue>(
@@ -186,17 +173,10 @@ export function TaskProvider({ children }: TaskProviderProps) {
       page,
       totalPages,
       goToPage,
-      filter,
-      setFilter,
-      selectedId,
-      selectTask,
-      closeDetails,
       busyIds,
-      toast,
-      dismissToast,
       createTask,
+      updateTask,
       toggleTask,
-      renameTask,
       deleteTask,
     }),
     [
@@ -208,17 +188,10 @@ export function TaskProvider({ children }: TaskProviderProps) {
       page,
       totalPages,
       goToPage,
-      filter,
-      setFilter,
-      selectedId,
-      selectTask,
-      closeDetails,
       busyIds,
-      toast,
-      dismissToast,
       createTask,
+      updateTask,
       toggleTask,
-      renameTask,
       deleteTask,
     ],
   )

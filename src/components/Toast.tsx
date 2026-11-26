@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { ToastVariant } from '../context/TaskContext'
+import type { ToastVariant } from '../context/ToastContext'
 import './Toast.scss'
 
 interface ToastProps {

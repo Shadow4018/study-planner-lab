@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import { Link, useLocation } from 'react-router'
 import { priorityLabels } from '../data/labels'
+import { useAuthGuard } from '../hooks/useAuthGuard'
 import { useTaskContext } from '../hooks/useTaskContext'
 import type { Task } from '../types/task'
 import './TaskItem.scss'
@@ -10,44 +11,29 @@ interface TaskItemProps {
 }
 
 function TaskItem({ task }: TaskItemProps) {
-  const { selectedId, busyIds, selectTask, toggleTask, renameTask, deleteTask } =
-    useTaskContext()
+  const { busyIds, toggleTask, deleteTask } = useTaskContext()
+  const requireAuth = useAuthGuard()
+  const { search } = useLocation()
 
   const { id, title, description, category, priority, completed } = task
 
-  // Локальний UI state елемента: режим редагування та підтвердження видалення.
-  const [isEditing, setIsEditing] = useState(false)
-  const [draft, setDraft] = useState(title)
+  // Локальний UI state елемента: підтвердження видалення.
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
   const isBusy = busyIds.includes(id)
-  const isSelected = selectedId === id
 
   const classNames = ['task-item']
   if (completed) classNames.push('task-item--completed')
-  if (isSelected) classNames.push('task-item--selected')
   if (isBusy) classNames.push('task-item--busy')
 
-  const startEditing = () => {
-    setDraft(title)
-    setIsEditing(true)
-  }
-
-  const handleRename = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    const trimmed = draft.trim()
-    if (trimmed === '') return
-    if (trimmed === title) {
-      setIsEditing(false)
-      return
-    }
-
-    const ok = await renameTask(id, trimmed)
-    if (ok) setIsEditing(false)
+  const handleToggle = () => {
+    // Гість → перенаправлення на Login; сама операція ще раз перевіряється в repository.
+    if (!requireAuth()) return
+    void toggleTask(id)
   }
 
   const handleDelete = async () => {
+    if (!requireAuth()) return
     const ok = await deleteTask(id)
     // Якщо видалення не вдалося, елемент лишається — ховаємо лише підтвердження.
     if (!ok) setIsConfirmingDelete(false)
@@ -56,35 +42,7 @@ function TaskItem({ task }: TaskItemProps) {
   return (
     <li className={classNames.join(' ')}>
       <div className="task-item__body">
-        {isEditing ? (
-          <form className="task-item__edit" onSubmit={handleRename}>
-            <input
-              className="task-item__edit-input"
-              type="text"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              aria-label="Нова назва завдання"
-              autoFocus
-            />
-            <button
-              className="task-item__button task-item__button--primary"
-              type="submit"
-              disabled={isBusy || draft.trim() === ''}
-            >
-              {isBusy ? 'Збереження…' : 'Зберегти'}
-            </button>
-            <button
-              className="task-item__button"
-              type="button"
-              onClick={() => setIsEditing(false)}
-              disabled={isBusy}
-            >
-              Скасувати
-            </button>
-          </form>
-        ) : (
-          <h3 className="task-item__title">{title}</h3>
-        )}
+        <h3 className="task-item__title">{title}</h3>
 
         {description && <p className="task-item__description">{description}</p>}
 
@@ -131,35 +89,27 @@ function TaskItem({ task }: TaskItemProps) {
         </div>
       ) : (
         <div className="task-item__actions">
-          <button
-            type="button"
+          {/* Параметри списку (?page, ?status…) переносимо в адресу деталей —
+              так «Назад до списку» повертає на ту саму сторінку з тими ж фільтрами. */}
+          <Link
             className="task-item__button"
-            onClick={() => selectTask(id)}
-            aria-pressed={isSelected}
+            to={{ pathname: `/tasks/${id}`, search }}
+            aria-label={`Деталі завдання «${title}»`}
           >
             Деталі
-          </button>
+          </Link>
           <button
             type="button"
             className="task-item__button task-item__button--toggle"
-            onClick={() => toggleTask(id)}
+            onClick={handleToggle}
             disabled={isBusy}
           >
             {completed ? 'Повернути' : 'Виконано'}
           </button>
           <button
             type="button"
-            className="task-item__button task-item__button--edit"
-            onClick={startEditing}
-            disabled={isBusy || isEditing}
-            aria-label={`Редагувати завдання «${title}»`}
-          >
-            Редагувати
-          </button>
-          <button
-            type="button"
             className="task-item__button task-item__button--delete"
-            onClick={() => setIsConfirmingDelete(true)}
+            onClick={() => (requireAuth() ? setIsConfirmingDelete(true) : undefined)}
             disabled={isBusy}
             aria-label={`Видалити завдання «${title}»`}
           >

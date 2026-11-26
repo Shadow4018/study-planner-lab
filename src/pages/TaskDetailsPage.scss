@@ -1,0 +1,106 @@
+@use '../styles/variables' as *;
+
+.task-details {
+  padding: 20px;
+  background: $color-surface;
+  border-radius: $radius;
+  box-shadow: $shadow;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  &__back {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: $color-primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  &__confirm {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: $color-danger;
+    font-weight: 600;
+  }
+
+  &__button {
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &--primary {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: #fff;
+    }
+
+    &--delete:hover:not(:disabled) {
+      background: $color-danger-bg;
+      border-color: $color-danger;
+      color: $color-danger;
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+  }
+
+  &__row {
+    display: flex;
+    gap: 12px;
+
+    @media (max-width: 520px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+
+  &__label {
+    flex: 0 0 110px;
+    color: $color-muted;
+    font-size: 0.9rem;
+  }
+
+  &__value {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  &__muted {
+    color: $color-muted;
+    font-weight: 400;
+  }
+}

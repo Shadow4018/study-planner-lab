@@ -1,9 +1,3 @@
-/**
- * Безпечна робота з localStorage.
- * Доступ до сховища може кинути виняток (приватний режим, переповнення квоти,
- * заборонені cookies), а збережений JSON може бути пошкоджений — застосунок
- * не повинен через це ламатися.
- */
 
 export function readStorage<T>(
   key: string,
@@ -31,5 +25,12 @@ export function writeStorage(key: string, value: unknown): boolean {
     return true
   } catch {
     return false
+  }
+}
+
+export function removeStorage(key: string): void {
+  try {
+    window.localStorage.removeItem(key)
+  } catch {
   }
 }

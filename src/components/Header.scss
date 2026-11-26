@@ -2,16 +2,71 @@
 
 .header {
   margin-bottom: 24px;
-  text-align: center;
+
+  &__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
 
   &__title {
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.8rem;
     color: $color-primary;
   }
 
-  &__subtitle {
-    margin: 4px 0 0;
+  &__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__link {
+    padding: 6px 14px;
+    border-radius: 999px;
+    color: $color-text;
+    text-decoration: none;
+    transition: background $transition, color $transition;
+
+    &:hover {
+      background: $color-info-bg;
+    }
+
+    &--active {
+      background: $color-primary;
+      color: #fff;
+      font-weight: 600;
+
+      &:hover {
+        background: $color-primary-dark;
+      }
+    }
+  }
+
+  &__user {
     color: $color-muted;
+    font-size: 0.9rem;
+  }
+
+  &__logout {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid $color-border;
+    border-radius: 999px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $color-danger;
+      color: $color-danger;
+    }
+  }
+
+  &__subtitle {
+    margin: 8px 0 0;
+    color: $color-muted;
+    font-size: 0.9rem;
   }
 }

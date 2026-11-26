@@ -1,4 +1,4 @@
-import type { Priority, TaskFilter } from '../types/task'
+import type { Priority, PriorityFilter, TaskFilter } from '../types/task'
 
 export const priorityLabels: Record<Priority, string> = {
   low: 'Низький',
@@ -15,3 +15,10 @@ export const filterLabels: Record<TaskFilter, string> = {
 export const priorityOptions: Priority[] = ['low', 'medium', 'high']
 
 export const filterOptions: TaskFilter[] = ['all', 'completed', 'active']
+
+export const priorityFilterLabels: Record<PriorityFilter, string> = {
+  all: 'Будь-який',
+  ...priorityLabels,
+}
+
+export const priorityFilterOptions: PriorityFilter[] = ['all', ...priorityOptions]

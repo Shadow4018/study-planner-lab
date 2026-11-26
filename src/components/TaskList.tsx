@@ -1,12 +1,13 @@
 import { useTaskContext } from '../hooks/useTaskContext'
+import { useTaskQuery } from '../hooks/useTaskQuery'
 import StatusMessage from './StatusMessage'
 import TaskItem from './TaskItem'
 import './TaskList.scss'
 
 function TaskList() {
-  const { tasks, status, errorMessage, retry, filter } = useTaskContext()
+  const { tasks, status, errorMessage, retry } = useTaskContext()
+  const { status: statusFilter, priority } = useTaskQuery()
 
-  // Три асинхронні стани: loading → error (з повтором) → success.
   if (status === 'loading') {
     return <StatusMessage variant="loading" message="Loading..." />
   }
@@ -23,21 +24,20 @@ function TaskList() {
     )
   }
 
-  // Фільтр — client/UI state: застосовується до завантаженої сторінки.
   const visibleTasks = tasks.filter((task) => {
-    if (filter === 'completed') return task.completed
-    if (filter === 'active') return !task.completed
+    if (statusFilter === 'completed' && !task.completed) return false
+    if (statusFilter === 'active' && task.completed) return false
+    if (priority !== 'all' && task.priority !== priority) return false
     return true
   })
 
-  // Empty state: порожній результат не виглядає як зламаний інтерфейс.
   if (visibleTasks.length === 0) {
     return (
       <StatusMessage
         variant="empty"
         message="Завдань не знайдено."
         details={
-          tasks.length > 0 ? 'За цим фільтром на цій сторінці завдань немає.' : null
+          tasks.length > 0 ? 'За цими фільтрами на цій сторінці завдань немає.' : null
         }
       />
     )

@@ -1,13 +1,19 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router'
 import App from './App'
-import { TaskProvider } from './context/TaskProvider'
+import { AuthProvider } from './context/AuthProvider'
+import { ToastProvider } from './context/ToastProvider'
 import './styles/main.scss'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <TaskProvider>
-      <App />
-    </TaskProvider>
+    <BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ToastProvider>
+    </BrowserRouter>
   </StrictMode>,
 )
